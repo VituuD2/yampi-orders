@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha512-NhSC1YmyruXifcj/KFRWoC561YpHpc5Jtzgvbuzx5VozKpWvQ+4nXhPdFgmx8xqexRcpAglTj9sIBWINXa8x5w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script defer src="script.js"></script>
+    <title>Pedidos Yampi</title>
+</head>
+<body>
+    <div class="main-container">
+        <div class="head-title">
+            <div class="icon">
+                <img src="https://www.yampi.com.br/blog/wp-content/themes/mediumish/assets/img/new/logo-yampi.svg" height="20" alt="Yampi Logo">
+            </div>
+            <h1 class="title">Pedidos Yampi</h1>
+        </div>
+        <div class="table-container">
+            <div class="import-container">
+                <span class="import-title">Selecione o arquivo (.xlsx)</span>
+                <label for="file-upload" class="import-file">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-arrow-up-fill" viewBox="0 0 16 16">
+                        <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M6.354 9.854a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 8.707V12.5a.5.5 0 0 1-1 0V8.707z"/>
+                    </svg>
+                </label>
+                <input id="file-upload" type="file" accept=".xlsx, .xls, .csv">
+            </div>
+
+            <h2>Pedidos Detalhados</h2>
+            <div class="table" id="output-table">
+                <table></table>
+            </div>
+
+            <h2 style="margin-top: 40px;">Lista de Separação</h2>
+            <div class="separation-list-controls">
+                <button id="print-separation-list" class="print-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-printer-fill" viewBox="0 0 16 16">
+                        <path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4zm1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2m7 2H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1"/>
+                    </svg>
+                    Imprimir Lista
+                </button>
+            </div>
+            <div class="separation-list" id="separation-list-output">
+                </div>
+        </div>
+    </div>
+</body>
+</html>

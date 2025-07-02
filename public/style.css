@@ -1,0 +1,358 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #ececec;
+    display: flex;
+    justify-content: center;
+    padding: 2rem 0;
+    margin: 0;
+    min-height: 100vh;
+    align-items: flex-start;
+}
+
+.main-container {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 1200px;
+}
+
+.head-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0px 0px 30px 0px;
+}
+
+.head-title h1 {
+    margin: 0px 15px;
+    font-size: 2.2rem;
+    color: #333;
+}
+
+.head-title .icon {
+    display: flex;
+    align-items: center;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.import-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.import-title {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.import-file {
+    border: 1px solid #4bc54b;
+    border-radius: 8px;
+    background-color: #4bc54b;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all .3s ease;
+    font-size: 1rem;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.import-file:hover {
+    background-color: #2da32d;
+    border-color: #2da32d;
+}
+
+.import-file svg {
+    fill: #fff;
+    width: 20px;
+    height: 20px;
+}
+
+.sales-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sales-table th,
+.sales-table td {
+    border: 1px solid #ddd;
+    padding: 12px 15px;
+    text-align: left;
+}
+
+.sales-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #333;
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+
+.sales-table tbody tr.hovered-order{
+    background-color: #d6eaff;
+}
+
+.sales-table tbody tr:nth-child(even):not(.hovered-order) {
+    background-color: #f8f8f8;
+}
+
+.sales-table tbody tr:not(.hovered-order) {
+    background-color: #fff;
+}
+
+.sales-table td span {
+    font-weight: 600;
+    color: #444;
+}
+
+.table-container p {
+    text-align: center;
+    color: #666;
+    margin-top: 30px;
+    font-style: italic;
+}
+
+.product-quantity {
+    font-weight: bold;
+    color: #007bff;
+    background-color: #ff8888;
+    padding: 3px 6px;
+    border-radius: 4px;
+    margin-left: 5px;
+    display: inline-block;
+    min-width: 25px;
+    text-align: center;
+}
+
+.print-button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.3s ease;
+    margin: 20px auto;
+}
+
+.print-button:hover {
+    background-color: #0056b3;
+}
+
+.print-button svg {
+    fill: white;
+    width: 18px;
+    height: 18px;
+}
+
+.separation-list {
+    background-color: #fcfcfc;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 25px;
+    margin-top: 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.separation-ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.separation-ul li {
+    padding: 8px 0;
+    border-bottom: 1px dashed #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.05em;
+}
+
+.separation-ul li:last-child {
+    border-bottom: none;
+}
+
+.product-name-list {
+    font-weight: bold;
+    color: #333;
+    flex-grow: 1;
+    padding-right: 15px;
+}
+
+.product-quantity-list {
+    font-weight: bold;
+    color: #007bff;
+    background-color: #e0f2ff;
+    padding: 4px 10px;
+    border-radius: 5px;
+    min-width: 40px;
+    text-align: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+@media print {
+    /* 1. Ocultar todo o conteúdo da tela, exceto o wrapper de impressão */
+    body * {
+        visibility: hidden !important;
+        height: auto !important;
+        overflow: visible !important;
+        float: none !important;
+        display: none !important; /* Mais agressivo, garante que nada ocupe espaço */
+    }
+
+    /* Apenas o print-wrapper e seus filhos são visíveis */
+    body.printing #print-wrapper,
+    body.printing #print-wrapper * {
+        visibility: visible !important;
+        display: block !important; /* Garante que os filhos do wrapper sejam blocos por padrão */
+    }
+
+    html, body.printing {
+        margin: 0 !important;
+        padding: 0 !important;
+        font-size: 9pt !important; /* Fonte base menor para caber mais */
+        line-height: 1.2 !important; /* Espaçamento entre linhas mais compacto */
+        background-color: white !important; /* Garante fundo branco */
+        width: 100vw !important; /* Use viewport width */
+        min-height: 100vh !important; /* Use viewport height */
+        overflow: hidden !important; /* Esconde scrollbars na impressão */
+    }
+
+    /* 2. Definir o tamanho da página e margens com @page */
+    @page {
+        size: A4 portrait;
+        margin: 0 !important; /* Tentar zerar as margens da página *completamente* */
+        padding: 0 !important; /* Adicionado padding para @page, pode não ser suportado */
+    }
+
+    /* Estilos críticos para o wrapper de impressão */
+    #print-wrapper {
+        position: static !important; /* Continua como static */
+        width: 100% !important; /* Ocupa 100% da largura do body */
+        max-width: none !important;
+        height: auto !important; /* Altura automática baseada no conteúdo */
+        background-color: white !important;
+        padding: 0 !important; /* Nenhum padding aqui */
+        margin: 0 !important; /* Nenhuma margem aqui */
+        border: none !important; /* Garante que não haja bordas invisíveis */
+        box-shadow: none !important; /* Remove sombras */
+        top: 0 !important; /* Tenta fixar no topo mesmo com static */
+        left: 0 !important; /* Tenta fixar na esquerda mesmo com static */
+    }
+
+    #print-wrapper h1 {
+        font-size: 1.4em !important;
+        text-align: center !important;
+        margin: 0.5cm 0 0.5cm 0 !important; /* Ajustar margens do título com cm */
+        padding: 0 !important;
+        color: #000 !important;
+        page-break-after: avoid !important;
+    }
+
+    .separation-list {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        background-color: transparent !important;
+        page-break-inside: avoid !important;
+    }
+
+    .separation-ul {
+        list-style: none !important;
+        padding: 0.5cm !important; /* Padding para a lista inteira */
+        margin: 0 !important;
+    }
+
+    .separation-ul li {
+        padding: 2px 0 !important; /* Reduzir ainda mais o padding vertical dos itens */
+        border-bottom: 1px dashed #ddd !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        font-size: 0.85em !important; /* Reduzir ligeiramente a fonte para mais espaço */
+        line-height: 1.1 !important; /* Espaçamento de linha mais apertado para caber mais */
+        page-break-inside: avoid !important; 
+        page-break-after: auto !important; 
+    }
+
+    .separation-ul li:last-child {
+        border-bottom: none !important;
+    }
+
+    .product-name-list {
+        font-weight: bold !important;
+        color: #333 !important;
+        flex-grow: 1 !important;
+        padding-right: 2px !important; /* Reduzir ainda mais o padding direito */
+        white-space: normal !important;
+        word-wrap: break-word !important;
+    }
+
+    .product-quantity-list {
+        font-weight: bold !important;
+        color: #000 !important;
+        background-color: #f0f0f0 !important;
+        padding: 0px 3px !important; /* Reduzir o padding para o mínimo */
+        border-radius: 3px !important;
+        min-width: 20px !important; /* Pode reduzir o min-width para ser mais flexível */
+        text-align: center !important;
+        white-space: nowrap !important; /* Impede a quebra de linha interna se o número for grande */
+    }
+    
+    /* Regra para o texto "unidades" e o span da quantidade ficarem juntos */
+    .separation-ul li {
+        flex-wrap: nowrap !important; /* Força os itens a permanecerem na mesma linha horizontal */
+    }
+
+    .separation-ul li > *:not(.product-name-list) {
+        /* Aplica ao span.product-quantity-list E ao texto " unidades" */
+        display: inline-flex !important; /* Use inline-flex para agrupar quantidade e unidades */
+        align-items: center !important; /* Alinha verticalmente se tiver padding diferente */
+        margin-left: 1px !important; /* Espaçamento mínimo */
+        font-size: 0.9em !important; /* Ajustar o tamanho da fonte se necessário */
+        white-space: nowrap !important; /* Impede a quebra de linha dentro deste grupo */
+    }
+
+    .print-button {
+        display: none !important;
+    }
+    
+    /* Rodapés e cabeçalhos do navegador (tentativa de ocultar completamente) */
+    @page {
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+
+      @top-left { content: ""; }
+      @top-center { content: ""; }
+      @top-right { content: ""; }
+      @bottom-left { content: ""; }
+      @bottom-center { content: ""; }
+      @bottom-right { content: ""; }
+    }
+}
