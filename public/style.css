@@ -215,144 +215,59 @@ input[type="file"] {
 }
 
 @media print {
-    /* 1. Ocultar todo o conteúdo da tela, exceto o wrapper de impressão */
-    body * {
-        visibility: hidden !important;
-        height: auto !important;
-        overflow: visible !important;
-        float: none !important;
-        display: none !important; /* Mais agressivo, garante que nada ocupe espaço */
+    /* Hide everything in the body by default when printing class is active */
+    body.printing > * {
+        display: none !important;
     }
 
-    /* Apenas o print-wrapper e seus filhos são visíveis */
-    body.printing #print-wrapper,
-    body.printing #print-wrapper * {
-        visibility: visible !important;
-        display: block !important; /* Garante que os filhos do wrapper sejam blocos por padrão */
+    /* Only show the print wrapper */
+    body.printing #print-wrapper {
+        display: block !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: white;
     }
 
-    html, body.printing {
-        margin: 0 !important;
-        padding: 0 !important;
-        font-size: 9pt !important; /* Fonte base menor para caber mais */
-        line-height: 1.2 !important; /* Espaçamento entre linhas mais compacto */
-        background-color: white !important; /* Garante fundo branco */
-        width: 100vw !important; /* Use viewport width */
-        min-height: 100vh !important; /* Use viewport height */
-        overflow: hidden !important; /* Esconde scrollbars na impressão */
-    }
+    /* Ensure table elements retain their display properties */
+    #print-wrapper table { display: table !important; }
+    #print-wrapper thead { display: table-header-group !important; }
+    #print-wrapper tbody { display: table-row-group !important; }
+    #print-wrapper tr { display: table-row !important; }
+    #print-wrapper td, #print-wrapper th { display: table-cell !important; }
 
-    /* 2. Definir o tamanho da página e margens com @page */
+    /* Page setup */
     @page {
         size: A4 portrait;
-        margin: 0 !important; /* Tentar zerar as margens da página *completamente* */
-        padding: 0 !important; /* Adicionado padding para @page, pode não ser suportado */
+        margin: 1cm;
     }
 
-    /* Estilos críticos para o wrapper de impressão */
     #print-wrapper {
-        position: static !important; /* Continua como static */
-        width: 100% !important; /* Ocupa 100% da largura do body */
-        max-width: none !important;
-        height: auto !important; /* Altura automática baseada no conteúdo */
-        background-color: white !important;
-        padding: 0 !important; /* Nenhum padding aqui */
-        margin: 0 !important; /* Nenhuma margem aqui */
-        border: none !important; /* Garante que não haja bordas invisíveis */
-        box-shadow: none !important; /* Remove sombras */
-        top: 0 !important; /* Tenta fixar no topo mesmo com static */
-        left: 0 !important; /* Tenta fixar na esquerda mesmo com static */
+        font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: #000;
     }
 
     #print-wrapper h1 {
-        font-size: 1.4em !important;
+        font-size: 18pt !important;
         text-align: center !important;
-        margin: 0.5cm 0 0.5cm 0 !important; /* Ajustar margens do título com cm */
-        padding: 0 !important;
+        margin-bottom: 20px !important;
         color: #000 !important;
-        page-break-after: avoid !important;
     }
 
     .separation-list {
         border: none !important;
         box-shadow: none !important;
         padding: 0 !important;
-        background-color: transparent !important;
-        page-break-inside: avoid !important;
     }
 
     .separation-ul {
-        list-style: none !important;
-        padding: 0.5cm !important; /* Padding para a lista inteira */
-        margin: 0 !important;
-    }
-
-    .separation-ul li {
-        padding: 2px 0 !important; /* Reduzir ainda mais o padding vertical dos itens */
-        border-bottom: 1px dashed #ddd !important;
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        font-size: 0.85em !important; /* Reduzir ligeiramente a fonte para mais espaço */
-        line-height: 1.1 !important; /* Espaçamento de linha mais apertado para caber mais */
-        page-break-inside: avoid !important; 
-        page-break-after: auto !important; 
-    }
-
-    .separation-ul li:last-child {
-        border-bottom: none !important;
-    }
-
-    .product-name-list {
-        font-weight: bold !important;
-        color: #333 !important;
-        flex-grow: 1 !important;
-        padding-right: 2px !important; /* Reduzir ainda mais o padding direito */
-        white-space: normal !important;
-        word-wrap: break-word !important;
-    }
-
-    .product-quantity-list {
-        font-weight: bold !important;
-        color: #000 !important;
-        background-color: #f0f0f0 !important;
-        padding: 0px 3px !important; /* Reduzir o padding para o mínimo */
-        border-radius: 3px !important;
-        min-width: 20px !important; /* Pode reduzir o min-width para ser mais flexível */
-        text-align: center !important;
-        white-space: nowrap !important; /* Impede a quebra de linha interna se o número for grande */
-    }
-    
-    /* Regra para o texto "unidades" e o span da quantidade ficarem juntos */
-    .separation-ul li {
-        flex-wrap: nowrap !important; /* Força os itens a permanecerem na mesma linha horizontal */
-    }
-
-    .separation-ul li > *:not(.product-name-list) {
-        /* Aplica ao span.product-quantity-list E ao texto " unidades" */
-        display: inline-flex !important; /* Use inline-flex para agrupar quantidade e unidades */
-        align-items: center !important; /* Alinha verticalmente se tiver padding diferente */
-        margin-left: 1px !important; /* Espaçamento mínimo */
-        font-size: 0.9em !important; /* Ajustar o tamanho da fonte se necessário */
-        white-space: nowrap !important; /* Impede a quebra de linha dentro deste grupo */
+        padding: 0 !important;
     }
 
     .print-button {
         display: none !important;
-    }
-    
-    /* Rodapés e cabeçalhos do navegador (tentativa de ocultar completamente) */
-    @page {
-      margin-top: 0 !important;
-      margin-bottom: 0 !important;
-      margin-left: 0 !important;
-      margin-right: 0 !important;
-
-      @top-left { content: ""; }
-      @top-center { content: ""; }
-      @top-right { content: ""; }
-      @bottom-left { content: ""; }
-      @bottom-center { content: ""; }
-      @bottom-right { content: ""; }
     }
 }

@@ -1,257 +1,390 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const fileUpload = document.getElementById('file-upload');
-    const outputTableDiv = document.getElementById('output-table');
-    const separationListOutputDiv = document.getElementById('separation-list-output');
-    const printButton = document.getElementById('print-separation-list');
+    /**
+     * OrderViewer Application
+     * Encapsulates logic for processing, displaying, and printing order data.
+     * Uses a class-based design pattern for better state management and modularity.
+     */
+    class OrderViewer {
+        constructor() {
+            // Cache DOM elements
+            this.dom = {
+                fileUpload: document.getElementById('file-upload'),
+                outputTable: document.getElementById('output-table'),
+                separationListOutput: document.getElementById('separation-list-output'),
+                printSeparationBtn: document.getElementById('print-separation-list'),
+                printOrdersBtn: null // Will be created dynamically
+            };
 
-    fileUpload.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (!file) {
-            return;
+            // Application State
+            this.state = {
+                groupedOrders: {},
+                separationList: {}
+            };
+
+            this.init();
         }
 
-        const reader = new FileReader();
-
-        reader.onload = (e) => {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-
-            const sheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[sheetName];
-
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-            const { groupedOrders, separationList } = processYampiData(jsonData);
-
-            displayData(groupedOrders, outputTableDiv);
-            displaySeparationList(separationList, separationListOutputDiv);
-        };
-
-        reader.readAsArrayBuffer(file);
-    });
-
-    printButton.addEventListener('click', () => {
-        printSeparationList(separationListOutputDiv);
-    });
-
-    function processYampiData(data) {
-        const headerRow = data[0];
-        const buyerNameColIndex = headerRow.indexOf('cliente');
-        const productColIndex = headerRow.indexOf('produto');
-        const quantityColIndex = headerRow.indexOf('quantidade');
-        const orderNumberColIndex = headerRow.indexOf('numero_pedido');
-
-        if (buyerNameColIndex === -1 || productColIndex === -1 || quantityColIndex === -1 || orderNumberColIndex === -1) {
-            console.error('Colunas essenciais (cliente, produto, quantidade, numero_pedido) não encontradas na planilha.');
-            alert('A planilha não possui todas as colunas esperadas: "cliente", "produto", "quantidade", "numero_pedido". Por favor, verifique o arquivo.');
-            return { groupedOrders: {}, separationList: {} };
+        init() {
+            this.injectStyles();
+            this.createUI();
+            this.bindEvents();
         }
 
-        const groupedOrders = {};
-        const consolidatedProducts = {};
+        /**
+         * Injects CSS for printing and UI enhancements.
+         */
+        injectStyles() {
+            const style = document.createElement('style');
+            style.textContent = `
+                /* UI Enhancements */
+                .hovered-order { background-color: #f0f8ff; transition: background-color 0.2s; }
+                .btn-print { margin-left: 10px; }
 
-        for (let i = 1; i < data.length; i++) {
-            const row = data[i];
-            const buyerName = row[buyerNameColIndex];
-            const productName = row[productColIndex];
-            const quantity = parseInt(String(row[quantityColIndex]).replace(',', '.'), 10);
-            const orderNumber = row[orderNumberColIndex];
+                /* Print Specific Styles */
+                @media print {
+                    /* Table Print Styles */
+                    .sales-table { 
+                        width: 100%; 
+                        border-collapse: collapse; 
+                        margin-top: 10px; 
+                        font-size: 11px;
+                    }
+                    
+                    .sales-table th { 
+                        background-color: #eee !important; 
+                        font-weight: bold;
+                        border: 1px solid #000;
+                        padding: 8px;
+                        text-align: left;
+                        -webkit-print-color-adjust: exact;
+                    }
 
-            if (!buyerName || !productName || isNaN(quantity) || !orderNumber) {
-                console.warn('Linha com dados inválidos ignorada:', row);
-                continue;
-            }
+                    .sales-table td { 
+                        border: 1px solid #000; 
+                        padding: 6px 8px; 
+                        text-align: left; 
+                        vertical-align: middle;
+                    }
 
-            if (!groupedOrders[buyerName]) {
-                groupedOrders[buyerName] = {};
-            }
-            if (!groupedOrders[buyerName][orderNumber]) {
-                groupedOrders[buyerName][orderNumber] = [];
-            }
-            groupedOrders[buyerName][orderNumber].push({
-                product: productName,
-                quantity: quantity
-            });
+                    /* Visibly separate orders with a thicker top border */
+                    tr.order-row-start td {
+                        border-top: 2px solid #000 !important;
+                    }
 
-            if (consolidatedProducts[productName]) {
-                consolidatedProducts[productName] += quantity;
-            } else {
-                consolidatedProducts[productName] = quantity;
+                    /* Clean up badges for print */
+                    .product-quantity {
+                        color: #000 !important;
+                        border: 1px solid #ccc;
+                        padding: 2px 4px;
+                    }
+
+                    .product-quantity.qty-high {
+                        background-color: #ff8888 !important;
+                        color: #000 !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+
+                    /* Avoid breaking rows awkwardly */
+                    tr { page-break-inside: avoid; }
+                    thead { display: table-header-group; }
+
+                    /* List Print Styles */
+                    .separation-ul { list-style: none; padding: 0; }
+                    .separation-ul li { 
+                        border-bottom: 1px solid #ccc; 
+                        padding: 5px 0; 
+                        display: flex; 
+                        justify-content: space-between; 
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        /**
+         * Creates additional UI elements like the Print Orders button.
+         */
+        createUI() {
+            if (this.dom.printSeparationBtn) {
+                const btn = document.createElement('button');
+                btn.id = 'print-orders-list';
+                btn.textContent = 'Imprimir Lista de Pedidos';
+                btn.type = 'button';
+                // Inherit classes from existing button for consistency, add custom class
+                btn.className = (this.dom.printSeparationBtn.className || '') + ' btn-print';
+                
+                // Insert after the existing print button
+                this.dom.printSeparationBtn.parentNode.insertBefore(btn, this.dom.printSeparationBtn.nextSibling);
+                this.dom.printOrdersBtn = btn;
             }
         }
-        return { groupedOrders: groupedOrders, separationList: consolidatedProducts };
-    }
 
-    function setupHoverEffects() {
-        const orderRows = document.querySelectorAll('.sales-table tbody tr[data-order-id]');
+        bindEvents() {
+            if (this.dom.fileUpload) {
+                this.dom.fileUpload.addEventListener('change', (e) => this.handleFileUpload(e));
+            }
 
-        orderRows.forEach(row => {
-            row.addEventListener('mouseover', () => {
-                const orderId = row.getAttribute('data-order-id');
-                const relatedRows = document.querySelectorAll(`.sales-table tbody tr[data-order-id="${orderId}"]`);
-                relatedRows.forEach(relatedRow => {
-                    relatedRow.classList.add('hovered-order');
+            if (this.dom.printSeparationBtn) {
+                this.dom.printSeparationBtn.addEventListener('click', () => {
+                    this.printElement(this.dom.separationListOutput, 'Lista de Separação de Produtos');
                 });
-            });
+            }
 
-            row.addEventListener('mouseout', () => {
-                const orderId = row.getAttribute('data-order-id');
-                const relatedRows = document.querySelectorAll(`.sales-table tbody tr[data-order-id="${orderId}"]`);
-                relatedRows.forEach(relatedRow => {
-                    relatedRow.classList.remove('hovered-order');
+            if (this.dom.printOrdersBtn) {
+                this.dom.printOrdersBtn.addEventListener('click', () => {
+                    this.printElement(this.dom.outputTable, 'Lista de Pedidos Completa');
                 });
-            });
-        });
-    }
-
-    function displayData(data, container) {
-        container.innerHTML = '';
-
-        if (Object.keys(data).length === 0) {
-            container.innerHTML = '<p>Nenhum dado processado para exibir.</p>';
-            return;
+            }
         }
 
-        const table = document.createElement('table');
-        table.classList.add('sales-table');
+        handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-        const thead = document.createElement('thead');
-        thead.innerHTML = `
-            <tr>
-                <th>N°</th>
-                <th>Comprador</th>
-                <th>Número do Pedido</th>
-                <th>Produtos</th>
-            </tr>
-        `;
-        table.appendChild(thead);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-        const tbody = document.createElement('tbody');
-        let rowNumber = 1;
+                    const processed = this.processData(jsonData);
+                    if (processed) {
+                        this.state = processed;
+                        this.render();
+                    }
+                } catch (error) {
+                    console.error("Erro ao processar arquivo:", error);
+                    alert("Ocorreu um erro ao ler o arquivo. Verifique se é um Excel válido.");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
 
-        for (const buyerName in data) {
-            for (const orderNumber in data[buyerName]) {
-                const products = data[buyerName][orderNumber];
+        processData(data) {
+            const headerRow = data[0];
+            // Normalize headers to lowercase for robust matching
+            const headers = headerRow.map(h => String(h).toLowerCase().trim());
+            
+            const buyerNameColIndex = headers.indexOf('cliente');
+            const productColIndex = headers.indexOf('produto');
+            const quantityColIndex = headers.indexOf('quantidade');
+            const orderNumberColIndex = headers.indexOf('numero_pedido');
 
-                const row = document.createElement('tr');
-                row.setAttribute('data-order-id', orderNumber);
-                row.classList.add('order-row-start');
+            if (buyerNameColIndex === -1 || productColIndex === -1 || quantityColIndex === -1 || orderNumberColIndex === -1) {
+                console.error('Colunas essenciais não encontradas.');
+                alert('A planilha não possui todas as colunas esperadas: "cliente", "produto", "quantidade", "numero_pedido".');
+                return null;
+            }
 
-                const numberCell = document.createElement('td');
-                numberCell.textContent = rowNumber++;
-                numberCell.rowSpan = products.length;
-                row.appendChild(numberCell);
+            const groupedOrders = {};
+            const consolidatedProducts = {};
 
-                const buyerCell = document.createElement('td');
-                buyerCell.textContent = buyerName;
-                buyerCell.rowSpan = products.length;
-                row.appendChild(buyerCell);
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (!row || row.length === 0) continue;
 
-                const orderCell = document.createElement('td');
-                orderCell.textContent = orderNumber;
-                orderCell.rowSpan = products.length;
-                row.appendChild(orderCell);
+                const buyerName = row[buyerNameColIndex];
+                const productName = row[productColIndex];
+                const rawQty = row[quantityColIndex];
+                const quantity = parseInt(String(rawQty || '0').replace(',', '.'), 10);
+                const orderNumber = row[orderNumberColIndex];
 
-                const productCell = document.createElement('td');
-                productCell.innerHTML = `<span>${products[0].product}</span> (Qtd: <span class="product-quantity">${products[0].quantity}</span>)`;
-                row.appendChild(productCell);
+                if (!buyerName || !productName || isNaN(quantity) || !orderNumber) {
+                    continue;
+                }
 
-                tbody.appendChild(row);
+                // Group by Buyer -> Order Number
+                if (!groupedOrders[buyerName]) groupedOrders[buyerName] = {};
+                if (!groupedOrders[buyerName][orderNumber]) groupedOrders[buyerName][orderNumber] = [];
+                
+                groupedOrders[buyerName][orderNumber].push({
+                    product: productName,
+                    quantity: quantity
+                });
 
-                for (let i = 1; i < products.length; i++) {
-                    const extraRow = document.createElement('tr');
-                    extraRow.setAttribute('data-order-id', orderNumber);
-                    extraRow.classList.add('order-row-follow');
-
-                    const extraProductCell = document.createElement('td');
-                    extraProductCell.innerHTML = `<span>${products[i].product}</span> (Qtd: <span class="product-quantity">${products[i].quantity}</span>)`;
-                    extraRow.appendChild(extraProductCell);
-                    tbody.appendChild(extraRow);
+                // Consolidate for Separation List
+                if (consolidatedProducts[productName]) {
+                    consolidatedProducts[productName] += quantity;
+                } else {
+                    consolidatedProducts[productName] = quantity;
                 }
             }
-        }
-        table.appendChild(tbody);
-        container.appendChild(table);
-
-        setupHoverEffects();
-    }
-
-    function displaySeparationList(data, container) {
-        container.innerHTML = '';
-
-        if (Object.keys(data).length === 0) {
-            container.innerHTML = '<p>Nenhum produto para a lista de separação.</p>';
-            return;
+            return { groupedOrders, separationList: consolidatedProducts };
         }
 
-        const ul = document.createElement('ul');
-        ul.classList.add('separation-ul');
-
-        const sortedProducts = Object.entries(data).sort((a, b) => a[0].localeCompare(b[0]));
-
-        sortedProducts.forEach(([productName, totalQuantity]) => {
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <span class="product-name-list">${productName}</span> 
-                <span class="product-quantity-list">${totalQuantity}</span>
-            `;
-            ul.appendChild(li);
-        });
-
-        container.appendChild(ul);
-    }
-
-    function printSeparationList(elementToPrint) {
-        // --- INÍCIO DA CORREÇÃO ---
-        // 0. Verifica se já existe um print-wrapper e o remove
-        const existingPrintWrapper = document.getElementById('print-wrapper');
-        if (existingPrintWrapper) {
-            existingPrintWrapper.remove(); // Ou document.body.removeChild(existingPrintWrapper);
+        render() {
+            this.renderOrdersTable(this.state.groupedOrders, this.dom.outputTable);
+            this.renderSeparationList(this.state.separationList, this.dom.separationListOutput);
+            this.setupHoverEffects();
         }
-        // --- FIM DA CORREÇÃO ---
 
-        // 1. Clonar o conteúdo que queremos imprimir
-        const contentToPrint = elementToPrint.cloneNode(true);
-
-        // 2. Criar um wrapper temporário para a impressão
-        const printWrapper = document.createElement('div');
-        printWrapper.id = 'print-wrapper';
-        
-        const printTitle = document.createElement('h1');
-        printTitle.textContent = 'Lista de Separação de Produtos';
-        printWrapper.appendChild(printTitle);
-
-        printWrapper.appendChild(contentToPrint);
-
-        // 3. Adicionar o wrapper ao body temporariamente
-        document.body.appendChild(printWrapper);
-
-        // 4. Adicionar uma classe ao body para ativar os estilos de impressão
-        document.body.classList.add('printing');
-
-        // 5. Chamar a função de impressão do navegador
-        window.print();
-
-        // 6. Remover a classe do body e o wrapper após a impressão
-        const afterPrintHandler = () => {
-            document.body.classList.remove('printing');
-            if (document.body.contains(printWrapper)) {
-                printWrapper.remove(); // Melhor usar .remove() se for compatível
+        renderOrdersTable(data, container) {
+            container.innerHTML = '';
+            if (Object.keys(data).length === 0) {
+                container.innerHTML = '<p>Nenhum dado processado para exibir.</p>';
+                return;
             }
-            window.removeEventListener('afterprint', afterPrintHandler);
-        };
 
-        window.addEventListener('afterprint', afterPrintHandler);
+            const table = document.createElement('table');
+            table.classList.add('sales-table');
 
-        // Fallback para navegadores que não suportam 'afterprint' ou para remoção mais rápida
-        // Reduzi o timeout, pois a remoção será garantida no início da próxima chamada.
-        setTimeout(() => {
-            if (document.body.classList.contains('printing')) {
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th>N°</th>
+                    <th>Comprador</th>
+                    <th>Número do Pedido</th>
+                    <th>Produtos</th>
+                    <th>Qtd</th>
+                </tr>
+            `;
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            let rowNumber = 1;
+
+            for (const buyerName in data) {
+                for (const orderNumber in data[buyerName]) {
+                    const products = data[buyerName][orderNumber];
+                    const rowSpan = products.length;
+
+                    // First row of the order
+                    const firstRow = document.createElement('tr');
+                    firstRow.setAttribute('data-order-id', orderNumber);
+                    firstRow.classList.add('order-row-start');
+
+                    // Helper to create cells
+                    const addCell = (row, text, span = 1, isHtml = false) => {
+                        const td = document.createElement('td');
+                        if (span > 1) td.rowSpan = span;
+                        if (isHtml) td.innerHTML = text; else td.textContent = text;
+                        row.appendChild(td);
+                    };
+
+                    addCell(firstRow, rowNumber++, rowSpan);
+                    addCell(firstRow, buyerName, rowSpan);
+                    addCell(firstRow, orderNumber, rowSpan);
+                    
+                    // First product details
+                    addCell(firstRow, `<span>${products[0].product}</span>`, 1, true);
+                    const firstQtyClass = products[0].quantity > 1 ? 'product-quantity qty-high' : 'product-quantity';
+                    addCell(firstRow, `<span class="${firstQtyClass}">${products[0].quantity}</span>`, 1, true);
+                    
+                    tbody.appendChild(firstRow);
+
+                    // Subsequent products for the same order
+                    for (let i = 1; i < products.length; i++) {
+                        const extraRow = document.createElement('tr');
+                        extraRow.setAttribute('data-order-id', orderNumber);
+                        extraRow.classList.add('order-row-follow');
+
+                        addCell(extraRow, `<span>${products[i].product}</span>`, 1, true);
+                        const qtyClass = products[i].quantity > 1 ? 'product-quantity qty-high' : 'product-quantity';
+                        addCell(extraRow, `<span class="${qtyClass}">${products[i].quantity}</span>`, 1, true);
+                        
+                        tbody.appendChild(extraRow);
+                    }
+                }   
+            }
+            table.appendChild(tbody);
+            container.appendChild(table);
+        }
+
+        renderSeparationList(data, container) {
+            container.innerHTML = '';
+            if (Object.keys(data).length === 0) {
+                container.innerHTML = '<p>Nenhum produto para a lista de separação.</p>';
+                return;
+            }
+
+            const ul = document.createElement('ul');
+            ul.classList.add('separation-ul');
+
+            const sortedProducts = Object.entries(data).sort((a, b) => a[0].localeCompare(b[0]));
+
+            sortedProducts.forEach(([productName, totalQuantity]) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span class="product-name-list">${productName}</span> 
+                    <span class="product-quantity-list">${totalQuantity}</span>
+                `;
+                ul.appendChild(li);
+            });
+
+            container.appendChild(ul);
+        }
+
+        setupHoverEffects() {
+            const orderRows = document.querySelectorAll('.sales-table tbody tr[data-order-id]');
+            orderRows.forEach(row => {
+                row.addEventListener('mouseover', () => {
+                    const orderId = row.getAttribute('data-order-id');
+                    document.querySelectorAll(`.sales-table tbody tr[data-order-id="${orderId}"]`)
+                        .forEach(r => r.classList.add('hovered-order'));
+                });
+
+                row.addEventListener('mouseout', () => {
+                    const orderId = row.getAttribute('data-order-id');
+                    document.querySelectorAll(`.sales-table tbody tr[data-order-id="${orderId}"]`)
+                        .forEach(r => r.classList.remove('hovered-order'));
+                });
+            });
+        }
+
+        printElement(elementToPrint, titleText) {
+            // 1. Clean up any existing print wrapper
+            const existingPrintWrapper = document.getElementById('print-wrapper');
+            if (existingPrintWrapper) {
+                existingPrintWrapper.remove();
+            }
+
+            if (!elementToPrint || elementToPrint.innerHTML.trim() === '') {
+                alert('Não há dados para imprimir.');
+                return;
+            }
+
+            // 2. Create wrapper
+            const printWrapper = document.createElement('div');
+            printWrapper.id = 'print-wrapper';
+            
+            const printTitle = document.createElement('h1');
+            printTitle.textContent = titleText;
+            printWrapper.appendChild(printTitle);
+
+            // 3. Clone content
+            printWrapper.appendChild(elementToPrint.cloneNode(true));
+
+            // 4. Append to body
+            document.body.appendChild(printWrapper);
+            document.body.classList.add('printing');
+
+            // 5. Print
+            window.print();
+
+            // 6. Cleanup
+            const afterPrintHandler = () => {
                 document.body.classList.remove('printing');
                 if (document.body.contains(printWrapper)) {
                     printWrapper.remove();
                 }
-            }
-        }, 300); // Um tempo menor, apenas para visualização de retorno
+                window.removeEventListener('afterprint', afterPrintHandler);
+            };
+
+            window.addEventListener('afterprint', afterPrintHandler);
+
+            // Fallback for browsers that might not trigger afterprint reliably
+            setTimeout(() => {
+                if (document.body.classList.contains('printing')) {
+                    afterPrintHandler();
+                }
+            }, 1000);
+        }
     }
+
+    // Initialize the application
+    new OrderViewer();
 });
