@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 /* UI Enhancements */
                 .hovered-order { background-color: #f0f8ff; transition: background-color 0.2s; }
                 .btn-print { margin-left: 10px; }
+                .shipment-icon { width: 40px; height: auto; display: block; margin: 0 auto; }
 
                 /* Print Specific Styles */
                 @media print {
@@ -173,6 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const productColIndex = headers.indexOf('produto');
             const quantityColIndex = headers.indexOf('quantidade');
             const orderNumberColIndex = headers.indexOf('numero_pedido');
+            const shipmentColIndex = headers.indexOf('entrega');
 
             if (buyerNameColIndex === -1 || productColIndex === -1 || quantityColIndex === -1 || orderNumberColIndex === -1) {
                 console.error('Colunas essenciais não encontradas.');
@@ -192,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const rawQty = row[quantityColIndex];
                 const quantity = parseInt(String(rawQty || '0').replace(',', '.'), 10);
                 const orderNumber = row[orderNumberColIndex];
+                const shipment = shipmentColIndex !== -1 ? row[shipmentColIndex] : null;
 
                 if (!buyerName || !productName || isNaN(quantity) || !orderNumber) {
                     continue;
@@ -203,7 +206,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 groupedOrders[buyerName][orderNumber].push({
                     product: productName,
-                    quantity: quantity
+                    quantity: quantity,
+                    shipment: shipment
                 });
 
                 // Consolidate for Separation List
@@ -214,6 +218,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             return { groupedOrders, separationList: consolidatedProducts };
+        }
+
+        getShipmentDetails(shipment) {
+            if (!shipment) return null;
+            const s = String(shipment).trim();
+            
+            if (s === 'FRENET_LOGGI_LOG_DRPOFF') return { src: 'media/LOGGI.png', title: 'Loggi Dropoff' };
+            if (s === 'FRENET_SEDEX_03220') return { src: 'media/SEDEX.png', title: 'Correios SEDEX' };
+            if (s === 'FRENET_PAC_03298') return { src: 'media/PAC.png', title: 'Correios PAC' };
+            return null;
         }
 
         render() {
@@ -238,6 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <th>N°</th>
                     <th>Comprador</th>
                     <th>Número do Pedido</th>
+                    <th>Envio</th>
                     <th>Produtos</th>
                     <th>Qtd</th>
                 </tr>
@@ -268,6 +283,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     addCell(firstRow, rowNumber++, rowSpan);
                     addCell(firstRow, buyerName, rowSpan);
                     addCell(firstRow, orderNumber, rowSpan);
+
+                    const shipmentInfo = this.getShipmentDetails(products[0].shipment);
+                    if (shipmentInfo) {
+                        addCell(firstRow, `<img src="${shipmentInfo.src}" title="${shipmentInfo.title}" class="shipment-icon" alt="${shipmentInfo.title}">`, rowSpan, true);
+                    } else {
+                        addCell(firstRow, '', rowSpan);
+                    }
                     
                     // First product details
                     addCell(firstRow, `<span>${products[0].product}</span>`, 1, true);
