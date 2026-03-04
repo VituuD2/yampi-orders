@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const style = document.createElement('style');
             style.textContent = `
                 /* UI Enhancements */
-                .hovered-order { background-color: #f0f8ff; transition: background-color 0.2s; }
+                .hovered-order { background-color: #f5f5f7; transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
                 .btn-print { margin-left: 10px; }
                 .shipment-icon { width: 40px; height: auto; display: block; margin: 0 auto; }
 
@@ -107,6 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
          * Creates additional UI elements like the Print Orders button.
          */
         createUI() {
+            this.createDateInput();
             if (this.dom.printSeparationBtn) {
                 const btn = document.createElement('button');
                 btn.id = 'print-orders-list';
@@ -118,6 +119,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Insert after the existing print button
                 this.dom.printSeparationBtn.parentNode.insertBefore(btn, this.dom.printSeparationBtn.nextSibling);
                 this.dom.printOrdersBtn = btn;
+            }
+        }
+
+        createDateInput() {
+            const container = document.querySelector('.import-container');
+            if (container) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'date-input-wrapper';
+                wrapper.style.marginBottom = '20px';
+                wrapper.style.display = 'flex';
+                wrapper.style.flexDirection = 'column';
+                wrapper.style.alignItems = 'center';
+
+                const label = document.createElement('label');
+                label.textContent = 'Data de Referência';
+                label.setAttribute('for', 'print-date-input');
+                label.style.marginBottom = '8px';
+                label.style.fontSize = '12px';
+                label.style.fontWeight = '600';
+                label.style.color = '#86868b';
+                label.style.textTransform = 'uppercase';
+                label.style.letterSpacing = '0.05em';
+
+                const input = document.createElement('input');
+                input.type = 'date';
+                input.id = 'print-date-input';
+                input.className = 'apple-date-input';
+                input.valueAsDate = new Date();
+
+                wrapper.appendChild(label);
+                wrapper.appendChild(input);
+                container.insertBefore(wrapper, container.firstChild);
+                this.dom.dateInput = input;
             }
         }
 
@@ -376,6 +410,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const printTitle = document.createElement('h1');
             printTitle.textContent = titleText;
             printWrapper.appendChild(printTitle);
+
+            // Add Date to Print
+            if (this.dom.dateInput && this.dom.dateInput.value) {
+                const datePara = document.createElement('p');
+                datePara.style.textAlign = 'center';
+                datePara.style.marginBottom = '30px';
+                datePara.style.fontSize = '14px';
+                datePara.style.color = '#1d1d1f';
+                
+                const d = new Date(this.dom.dateInput.value);
+                const userTimezoneOffset = d.getTimezoneOffset() * 60000;
+                const dateStr = new Date(d.getTime() + userTimezoneOffset).toLocaleDateString('pt-BR');
+                datePara.textContent = `Data: ${dateStr}`;
+                printWrapper.appendChild(datePara);
+            }
 
             // 3. Clone content
             printWrapper.appendChild(elementToPrint.cloneNode(true));

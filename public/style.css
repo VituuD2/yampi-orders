@@ -1,34 +1,44 @@
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: #ececec;
+    font-family: "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background-color: #f5f5f7;
+    color: #1d1d1f;
     display: flex;
     justify-content: center;
-    padding: 2rem 0;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     margin: 0;
     min-height: 100vh;
     align-items: flex-start;
+    -webkit-font-smoothing: antialiased;
 }
 
 .main-container {
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 90%;
-    max-width: 1200px;
+    /* Glassmorphism & Modular Unit */
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    padding: 60px; /* Breathability */
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    max-width: 1024px;
+    margin: 40px 20px;
 }
 
 .head-title {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 0px 0px 30px 0px;
+    margin: 0px 0px 60px 0px;
 }
 
 .head-title h1 {
+    font-family: "SF Pro Display", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
     margin: 0px 15px;
-    font-size: 2.2rem;
-    color: #333;
+    font-size: 56px;
+    font-weight: 700;
+    letter-spacing: -0.022em; /* The "Tighten" Rule */
+    color: #000;
 }
 
 .head-title .icon {
@@ -44,38 +54,63 @@ input[type="file"] {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 30px;
-    padding: 20px;
-    border: 1px dashed #ccc;
-    border-radius: 8px;
-    background-color: #f9f9f9;
+    margin-bottom: 60px;
+    padding: 40px;
+    border-radius: 18px;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
 }
 
 .import-title {
-    font-size: 1.1rem;
-    color: #555;
-    margin-bottom: 15px;
+    font-size: 24px;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin-bottom: 24px;
+    letter-spacing: 0.01em;
 }
 
 .import-file {
-    border: 1px solid #4bc54b;
-    border-radius: 8px;
-    background-color: #4bc54b;
+    /* Apple Button Style */
+    border: none;
+    border-radius: 980px; /* Pill shape */
+    background-color: #0071e3; /* Apple Blue */
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 10px 20px;
+    padding: 12px 28px;
     cursor: pointer;
-    transition: all .3s ease;
-    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Apple Standard Bezier */
+    font-size: 17px;
     color: #fff;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-weight: 500;
 }
 
 .import-file:hover {
-    background-color: #2da32d;
-    border-color: #2da32d;
+    background-color: #0077ed;
+    transform: scale(1.02);
+    opacity: 0.95;
+}
+
+.apple-date-input {
+    font-family: inherit;
+    font-size: 17px;
+    padding: 10px 16px;
+    border: 1px solid #d2d2d7;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.8);
+    color: #1d1d1f;
+    outline: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 200px;
+}
+
+.apple-date-input:focus {
+    border-color: #0071e3;
+    box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15);
+}
+
+.visuallyhidden {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;
 }
 
 .import-file svg {
@@ -86,55 +121,56 @@ input[type="file"] {
 
 .sales-table {
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 40px;
 }
 
 .sales-table th,
 .sales-table td {
-    border: 1px solid #ddd;
-    padding: 12px 15px;
+    border: none;
+    border-bottom: 1px solid #d2d2d7;
+    padding: 16px 20px;
     text-align: left;
 }
 
 .sales-table th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-    color: #333;
+    background-color: transparent;
+    font-weight: 600;
+    color: #86868b;
     text-transform: uppercase;
-    font-size: 0.9em;
+    font-size: 12px;
+    letter-spacing: 0.05em;
 }
 
 .sales-table tbody tr.hovered-order{
-    background-color: #d6eaff;
+    background-color: #f5f5f7;
 }
 
 .sales-table tbody tr:nth-child(even):not(.hovered-order) {
-    background-color: #f8f8f8;
+    background-color: transparent;
 }
 
 .sales-table tbody tr:not(.hovered-order) {
-    background-color: #fff;
+    background-color: transparent;
 }
 
 .sales-table td span {
-    font-weight: 600;
-    color: #444;
+    font-weight: 500;
+    color: #1d1d1f;
 }
 
 .table-container p {
     text-align: center;
-    color: #666;
+    color: #86868b;
     margin-top: 30px;
-    font-style: italic;
 }
 
 .product-quantity {
-    font-weight: bold;
-    color: #007bff;
-    background-color: #ff8888;
-    padding: 3px 6px;
+    font-weight: 600;
+    color: #1d1d1f;
+    background-color: #f5f5f7;
+    padding: 4px 8px;
     border-radius: 4px;
     margin-left: 5px;
     display: inline-block;
@@ -143,23 +179,24 @@ input[type="file"] {
 }
 
 .print-button {
-    background-color: #007bff;
+    background-color: #0071e3;
     color: white;
-    padding: 10px 20px;
+    padding: 12px 28px;
     border: none;
-    border-radius: 5px;
+    border-radius: 980px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 17px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: background-color 0.3s ease;
-    margin: 20px auto;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin: 40px auto;
 }
 
 .print-button:hover {
-    background-color: #0056b3;
+    background-color: #0077ed;
+    transform: scale(1.02);
 }
 
 .print-button svg {
@@ -169,12 +206,11 @@ input[type="file"] {
 }
 
 .separation-list {
-    background-color: #fcfcfc;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 25px;
-    margin-top: 20px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    background-color: #fff;
+    border-radius: 18px;
+    padding: 40px;
+    margin-top: 40px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
 }
 
 .separation-ul {
@@ -185,11 +221,11 @@ input[type="file"] {
 
 .separation-ul li {
     padding: 8px 0;
-    border-bottom: 1px dashed #eee;
+    border-bottom: 1px solid #e5e5e5;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 1.05em;
+    font-size: 17px;
 }
 
 .separation-ul li:last-child {
@@ -197,16 +233,16 @@ input[type="file"] {
 }
 
 .product-name-list {
-    font-weight: bold;
-    color: #333;
+    font-weight: 500;
+    color: #1d1d1f;
     flex-grow: 1;
     padding-right: 15px;
 }
 
 .product-quantity-list {
-    font-weight: bold;
-    color: #007bff;
-    background-color: #e0f2ff;
+    font-weight: 600;
+    color: #0071e3;
+    background-color: rgba(0, 113, 227, 0.1);
     padding: 4px 10px;
     border-radius: 5px;
     min-width: 40px;
@@ -230,6 +266,8 @@ input[type="file"] {
         margin: 0;
         padding: 0;
         background-color: white;
+        backdrop-filter: none;
+        box-shadow: none;
     }
 
     /* Ensure table elements retain their display properties */
