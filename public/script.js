@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
          * Creates additional UI elements like the Print Orders button.
          */
         createUI() {
-            this.createDateInput();
+            this.setupCustomCalendar();
             if (this.dom.printSeparationBtn) {
                 const btn = document.createElement('button');
                 btn.id = 'print-orders-list';
@@ -122,36 +122,100 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        createDateInput() {
-            const container = document.querySelector('.import-container');
-            if (container) {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'date-input-wrapper';
-                wrapper.style.marginBottom = '20px';
-                wrapper.style.display = 'flex';
-                wrapper.style.flexDirection = 'column';
-                wrapper.style.alignItems = 'center';
+        setupCustomCalendar() {
+            const dateDisplay = document.getElementById('date-display');
+            const dateInput = document.getElementById('print-date-input');
+            const calendar = document.getElementById('custom-calendar');
+            
+            if (!dateDisplay || !calendar || !dateInput) return;
 
-                const label = document.createElement('label');
-                label.textContent = 'Data de Referência';
-                label.setAttribute('for', 'print-date-input');
-                label.style.marginBottom = '8px';
-                label.style.fontSize = '12px';
-                label.style.fontWeight = '600';
-                label.style.color = '#86868b';
-                label.style.textTransform = 'uppercase';
-                label.style.letterSpacing = '0.05em';
+            // Map the hidden input to the dom cache so print logic works
+            this.dom.dateInput = dateInput;
 
-                const input = document.createElement('input');
-                input.type = 'date';
-                input.id = 'print-date-input';
-                input.className = 'apple-date-input';
-                input.valueAsDate = new Date();
+            let currentDate = new Date();
+            let selectedDate = new Date();
 
-                wrapper.appendChild(label);
-                wrapper.appendChild(input);
-                container.insertBefore(wrapper, container.firstChild);
-                this.dom.dateInput = input;
+            // Format helpers
+            const formatDate = (d) => d.toLocaleDateString('pt-BR');
+            const formatISO = (d) => d.toISOString().split('T')[0];
+
+            // Set initial values
+            dateDisplay.value = formatDate(selectedDate);
+            dateInput.value = formatISO(selectedDate);
+
+            const render = (date) => {
+                calendar.innerHTML = '';
+                const year = date.getFullYear();
+                const month = date.getMonth();
+
+                // Header
+                const header = document.createElement('div');
+                header.className = 'calendar-header';
+                
+                const prevBtn = document.createElement('button');
+                prevBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>`;
+                prevBtn.onclick = (e) => { e.stopPropagation(); currentDate.setMonth(currentDate.getMonth() - 1); render(currentDate); };
+
+                const title = document.createElement('span');
+                title.textContent = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(date);
+                title.style.textTransform = 'capitalize';
+
+                const nextBtn = document.createElement('button');
+                nextBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+                nextBtn.onclick = (e) => { e.stopPropagation(); currentDate.setMonth(currentDate.getMonth() + 1); render(currentDate); };
+
+                header.append(prevBtn, title, nextBtn);
+                calendar.appendChild(header);
+
+                // Weekdays
+                const weekdays = document.createElement('div');
+                weekdays.className = 'calendar-weekdays';
+                ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].forEach(d => {
+                    const span = document.createElement('span');
+                    span.textContent = d;
+                    weekdays.appendChild(span);
+                });
+                calendar.appendChild(weekdays);
+
+                // Grid
+                const grid = document.createElement('div');
+                grid.className = 'calendar-grid';
+
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('div'));
+
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const dayBtn = document.createElement('button');
+                    dayBtn.textContent = i;
+                    dayBtn.className = 'calendar-day';
+                    if (selectedDate.getDate() === i && selectedDate.getMonth() === month && selectedDate.getFullYear() === year) {
+                        dayBtn.classList.add('selected');
+                    }
+                    dayBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        selectedDate = new Date(year, month, i);
+                        dateDisplay.value = formatDate(selectedDate);
+                        dateInput.value = formatISO(selectedDate);
+                        calendar.classList.remove('active');
+                        render(currentDate);
+                    };
+                    grid.appendChild(dayBtn);
+                }
+                calendar.appendChild(grid);
+            };
+
+            render(currentDate);
+
+            dateDisplay.addEventListener('click', (e) => { e.stopPropagation(); calendar.classList.toggle('active'); });
+            document.addEventListener('click', (e) => {
+                if (!calendar.contains(e.target) && e.target !== dateDisplay) calendar.classList.remove('active');
+            });
+        }
+
+        bindEvents() {
+            if (this.dom.fileUpload) {
             }
         }
 
@@ -414,10 +478,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Add Date to Print
             if (this.dom.dateInput && this.dom.dateInput.value) {
                 const datePara = document.createElement('p');
-                datePara.style.textAlign = 'center';
-                datePara.style.marginBottom = '30px';
-                datePara.style.fontSize = '14px';
-                datePara.style.color = '#1d1d1f';
                 
                 const d = new Date(this.dom.dateInput.value);
                 const userTimezoneOffset = d.getTimezoneOffset() * 60000;
